@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Commands>
+
+  <!-- You can setup custom text responses. When someone enters '!simple' the bot will reply with 'Hello world!'. -->
+  <Command keyword="simple" timeout="0:30">
+    <Message>Hello world!</Message>
+  </Command>
+    
+  <!-- You can also include variables like '{username}' in your response message. -->
+  <Command keyword="hello" timeout="0:30">
+    <Message>Hello, {username}!</Message>
+  </Command>
+  
+  <!-- There is also a variable to choose an random user from chat. -->
+  <Command keyword="hug" timeout="0:30">
+    <Message>{username} hugs {randomuser}! UwU</Message>
+  </Command>
+  
+
+  <!-- You can define multiple response messages too. The bot will pick one random -->
+  <Command keyword="coin" timeout="0:30">
+    <Message>{username} flipped a coin: Head</Message>
+    <Message>{username} flipped a coin: Tail</Message>
+  </Command>
+
+
+  <!-- There is a variable to select a random user. You can also drop the Message tag when there is only one message text. -->
+  <Command keyword="random" timeout="0:30">Hello {randomuser}!</Command>
+
+  <!-- The bot can also check conditions and react to different users. 
+       The bot will choose the first condition that is true. A condition without 'if' is always true. -->
+  <Command keyword="checkme" timeout="0:30">
+    <Condition if="{ismoderator} || {isbroadcaster}">{username} is very important!</Condition>
+    <Condition if="{issubscriber}">{username} is a subscriber!</Condition>
+    <Condition>{username} is just a normal user...</Condition>
+  </Command>
+
+  
+
+  <!-- Special command -->
+  
+
+  <!-- This enables the quote method. A mod can use '!quote I've said something funny' to store a quote. 
+       A viewer can execute '!quote' and the bot will response with a random quote. -->
+  <QuoteCommand keyword="quote" timeout="0:30">
+    <MessageSuccess>Quote was added!</MessageSuccess>
+    <MessageNotAllowed>Only mods can add a quote.</MessageNotAllowed>
+  </QuoteCommand>
+
+  <!-- Mods can allow viewers to bypass any moderation filters for a few minutes. They can use '!allow Arcus92' for example.-->
+  <AllowCommand keyword="allow" timeout="0">
+    <MessageSuccess>{username} can now write everything!</MessageSuccess>
+  </AllowCommand>
+    
+  <!-- There is a command to change the current game title as well. It can only be executed by a mod. -->
+  <GameCommand keyword="game" timeout="0" >
+    <MessageSuccess>The game was changed: {game}</MessageSuccess>
+    <MessageNotAllowed>You are not allowed to change the game!</MessageNotAllowed>
+  </GameCommand>
+  
+  <!-- There is a link moderator as well. It will remove any link from normal viewers. Mods and allowed-users ignored. 
+       You can set warningremovemessage if you want to warn the user first. The user will be timeouted on the second attempt then. The message will be removed. -->
+  <LinkModerator warning="true" warningremovemessage="true" timeout="10:00">
+    <MessageWarning>You are not allowed to post links here, {username}. This is your last warning!</MessageWarning>
+    <MessageTimeout>You are still not allowed to post links, {username}. Here is your 10 minute timeout!</MessageTimeout>
+  </LinkModerator>
+
+  <!-- You can setup timed messages. The bot will sent one message every 30sec. -->
+  <TimedMessages interval="30:00">
+    <Message>Did you know? You can follow me on Twitter!</Message>
+    <Message>Did you know? You can also find me on YouTube!</Message>
+  </TimedMessages>
+</Commands>

@@ -17,4 +17,10 @@
     <PackageReference Include="TwitchLib" Version="3.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Commands.Sample.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
