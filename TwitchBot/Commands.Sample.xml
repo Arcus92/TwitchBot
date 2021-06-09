@@ -13,7 +13,7 @@
   
   <!-- There is also a variable to choose an random user from chat. -->
   <Command keyword="hug" timeout="0:30">
-    <Message>{username} hugs {randomuser}! UwU</Message>
+    <Message>{username} hugs {randomuser:onlyactive,excludeme}! UwU</Message>
   </Command>
   
 
