@@ -339,6 +339,7 @@ namespace TwitchBot
                         switch (name)
                         {
                             case "Text":
+                            case "Message":
                                 legacyTexts.Add(ReadString(xml).Trim());
                                 return true;
                             case "Condition":
