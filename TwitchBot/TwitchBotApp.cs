@@ -230,7 +230,7 @@ namespace TwitchBot
                     }
                 });
             }
-           
+
         }
 
         /// <summary>
@@ -404,7 +404,8 @@ namespace TwitchBot
 
                 // Returns a random user
                 case "randomuser":
-                    var chatter = GetRandomChatter();
+                    var type = ParseChatterSelectType(argument);
+                    var chatter = GetRandomChatter(type, null);
                     return chatter.Username;
 
                 default:
@@ -464,6 +465,11 @@ namespace TwitchBot
                     // The text after the command
                     case "argument":
                         return arguments;
+                    // Returns a random user
+                    case "randomuser":
+                        var type = ParseChatterSelectType(argument);
+                        var chatter = GetRandomChatter(type, message.Username);
+                        return chatter.Username;
 
                     default:
                         return HandleMessageParameter(name, argument);
@@ -478,6 +484,9 @@ namespace TwitchBot
         /// <returns></returns>
         private bool HandleMessage(ChatMessage message)
         {
+            // Keep track of the active chatters
+            ActiveChatters.Add(message.Username);
+
             foreach (var handler in m_Commands.MessageHandler)
             {
                 if (handler.Handle(this, message))
@@ -644,6 +653,43 @@ namespace TwitchBot
         private List<ChatterFormatted> m_Chatters;
 
         /// <summary>
+        /// Gets the list of all active chatters
+        /// </summary>
+        public TimedList<string> ActiveChatters { get; } = new TimedList<string>(TimeSpan.FromMinutes(30));
+
+        /// <summary>
+        /// The select type for the random chatter selection
+        /// </summary>
+        [Flags]
+        public enum ChatterSelectType
+        {
+            All = 0,
+            ExcludeMe = 1,
+            ExcludeStreamer = 2,
+            OnlyActive = 4,
+            ExcludeActive = 8,
+            OnlyModerators = 16,
+            ExcludeModerators = 32,
+        }
+
+        /// <summary>
+        /// Parses the chatter selewct type
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static ChatterSelectType ParseChatterSelectType(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return ChatterSelectType.All;
+            if (Enum.TryParse<ChatterSelectType>(name, true, out var type))
+            {
+                return type;
+            }
+
+            return ChatterSelectType.All;
+        }
+
+        /// <summary>
         /// Returns a list of chatters
         /// </summary>
         public List<ChatterFormatted> GetChatters()
@@ -672,15 +718,64 @@ namespace TwitchBot
         /// <summary>
         /// Returns a random chatter
         /// </summary>
+        /// <param name="type"></param>
+        /// <param name="me"></param>
         /// <returns></returns>
-        public ChatterFormatted GetRandomChatter()
+        public ChatterFormatted GetRandomChatter(ChatterSelectType type, string me = null)
         {
-            var list = GetChatters();
+            var list = FilterChatter(GetChatters(), type, me).ToList();
             if (list.Count == 0)
                 return new ChatterFormatted("???", UserType.Viewer);
 
             var i = GetRandomNumber(list.Count);
             return list[i];
+        }
+
+        /// <summary>
+        /// Filters the chatter list
+        /// </summary>
+        /// <param name="chatter"></param>
+        /// <param name="type"></param>
+        /// <param name="me"></param>
+        /// <returns></returns>
+        public IEnumerable<ChatterFormatted> FilterChatter(IEnumerable<ChatterFormatted> chatter, ChatterSelectType type, string me = null)
+        {
+            // Apply the ExcludeMe filter
+            if (type.HasFlag(ChatterSelectType.ExcludeMe))
+            {
+                chatter = chatter.Where(c => c.Username != me);
+            }
+
+            // Apply the ExcludeStreamer filter
+            if (type.HasFlag(ChatterSelectType.ExcludeStreamer))
+            {
+                chatter = chatter.Where(c => c.Username != Channel);
+            }
+
+            // Apply the OnlyActive filter
+            if (type.HasFlag(ChatterSelectType.OnlyActive))
+            {
+                chatter = chatter.Where(c => ActiveChatters.Contains(c.Username));
+            }
+
+            // Apply the ExcludeActive filter
+            if (type.HasFlag(ChatterSelectType.ExcludeActive))
+            {
+                chatter = chatter.Where(c => !ActiveChatters.Contains(c.Username));
+            }
+
+            // Apply the OnlyModerators filter
+            if (type.HasFlag(ChatterSelectType.OnlyModerators))
+            {
+                chatter = chatter.Where(c => c.UserType == UserType.Moderator);
+            }
+
+            // Apply the ExcludeActive filter
+            if (type.HasFlag(ChatterSelectType.ExcludeModerators))
+            {
+                chatter = chatter.Where(c => c.UserType != UserType.Moderator);
+            }
+            return chatter;
         }
 
         #endregion Chatters
