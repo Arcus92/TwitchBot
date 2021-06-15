@@ -304,6 +304,7 @@ namespace TwitchBot
                         switch (name)
                         {
                             case "Text":
+                            case "Message":
                                 messages.Add(ReadString(xml).Trim());
                                 return true;
                             default:
